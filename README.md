@@ -1,36 +1,52 @@
-# makemore, part 1 (course exercise, in progress)
+# makemore, part 1: bigram counts (course exercise)
 
-My work-through of the second lecture of Andrej Karpathy's **[Neural Networks: Zero to Hero](https://karpathy.ai/zero-to-hero.html)** course: *[The spelled-out intro to language modeling: building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo)*.
+## What this is
 
-This is a learning exercise, not original work. The approach and code follow the lecture and Karpathy's reference repository, [karpathy/makemore](https://github.com/karpathy/makemore) (MIT). `names.txt` (about 32k first names) is the dataset from that repository.
+A learning log for lecture 2 of Andrej Karpathy's [Neural Networks: Zero to Hero](https://karpathy.ai/zero-to-hero.html): [The spelled-out intro to language modeling: building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo).
 
-## What the notebook covers so far
+This is not original work. The approach and code follow the lecture and Karpathy's reference repository, [karpathy/makemore](https://github.com/karpathy/makemore) (MIT). `names.txt` is the dataset from that repository. I typed the code along with the video and ran it myself.
 
-`makemore_part1_bigrams.ipynb` stops at the bigram counting stage:
+Status: in progress. The notebook stops at the counting stage, before the lecture turns counts into a model.
 
-1. Load `names.txt` and inspect the dataset (examples, count, word lengths).
-2. Count character bigrams with a Python dict, using `<S>` / `<E>` start and end tokens.
-3. Build the same counts as a 28×28 `torch` tensor with `stoi` / `itos` character mappings.
-4. Plot the count matrix as an annotated heatmap.
+## What I implemented
 
-Not done yet: turning counts into probabilities, sampling names, measuring negative log-likelihood, and training the equivalent single-layer neural network with gradient descent (the second half of the lecture).
+In `makemore_part1_bigrams.ipynb`:
+
+1. Load `names.txt` and inspect it: 32,033 names, shortest 2 characters.
+2. Count character bigrams in a Python dict, wrapping each name in `<S>` and `<E>` tokens, then sort by frequency.
+3. Rebuild the same counts as a 28x28 `torch.int32` tensor, indexed through `stoi` / `itos` maps (26 letters plus the two tokens).
+4. Plot the matrix as an annotated heatmap with matplotlib.
+
+Not done yet: normalising rows into probabilities, sampling names, scoring with negative log-likelihood, and the one-layer neural network trained by gradient descent that the second half of the lecture builds.
 
 ## What I learned
 
-- A character-level bigram model is just a table of next-character counts; normalising each row gives the model.
-- Adding explicit start/end tokens lets the same table model where names begin and end.
-- Moving from a dict to a tensor indexed through `stoi` / `itos` is what makes the later vectorised (and neural) version possible.
+- A character-level bigram model is a table of next-character counts. The 32,033 names yield 228,146 bigrams; normalising each row of the table is the whole model.
+- Start and end tokens let the same table capture where names begin and end. The most frequent bigrams are `n<E>` (6,763) and `a<E>` (6,640): name endings dominate.
+- Using two separate tokens wastes space: `<E>` never starts a bigram and `<S>` never ends one, so a full row and column of the heatmap are zero. The lecture later replaces both with a single `.` token for this reason.
+- Moving from a dict keyed by character pairs to a tensor indexed by integers is what makes the later vectorised and neural versions possible.
 
 ## Run it
 
+Python 3.10+.
+
 ```bash
+git clone https://github.com/Caezarr/makemore.git && cd makemore
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 jupyter notebook makemore_part1_bigrams.ipynb
 ```
 
-Run all cells top to bottom; `names.txt` must stay next to the notebook. Outputs are not committed.
+Run all cells top to bottom; `names.txt` must stay next to the notebook. Outputs are not committed. The dict-counting cell prints every bigram, so its output is long (about 228k lines).
+
+To execute it headless instead:
+
+```bash
+jupyter nbconvert --to notebook --execute makemore_part1_bigrams.ipynb --output executed.ipynb
+```
+
+This runs in a few seconds on a laptop CPU.
 
 ## Credits
 
-All credit for the course, the makemore design, the dataset and the teaching to [Andrej Karpathy](https://karpathy.ai). Lecture: <https://www.youtube.com/watch?v=PaCmpygFfXo>. Reference code and data: <https://github.com/karpathy/makemore>.
+All credit for the course, the makemore design, the dataset and the teaching goes to [Andrej Karpathy](https://karpathy.ai). Lecture: <https://www.youtube.com/watch?v=PaCmpygFfXo>. Reference code and data: <https://github.com/karpathy/makemore>.
